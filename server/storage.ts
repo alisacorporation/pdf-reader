@@ -1,38 +1,40 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  preferences,
+  type InsertPreference,
+  type Preference
+} from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getPreferences(id: number): Promise<Preference | undefined>;
+  savePreferences(pref: InsertPreference): Promise<Preference>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  // We'll treat ID 1 as the default/single user for this anonymous local-first app
+  async getPreferences(id: number): Promise<Preference | undefined> {
+    const [pref] = await db.select().from(preferences).where(eq(preferences.id, id));
+    return pref;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async savePreferences(pref: InsertPreference): Promise<Preference> {
+    // Upsert logic for the single preference record
+    const existing = await this.getPreferences(1);
+    if (existing) {
+      const [updated] = await db.update(preferences)
+        .set(pref)
+        .where(eq(preferences.id, 1))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(preferences)
+        .values({ ...pref, id: 1 }) // Force ID 1
+        .returning();
+      return created;
+    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

@@ -1,18 +1,24 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+
+import { pgTable, text, serial, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// We'll keep the backend schema minimal since most logic is client-side for privacy.
+// This table is just a placeholder to ensure the stack works correctly, 
+// primarily could be used for non-identifiable app preferences if we ever decided to sync them (optional).
+export const preferences = pgTable("preferences", {
+  id: serial("id").primaryKey(),
+  theme: text("theme").default("system"), // 'light', 'dark', 'system'
+  defaultZoom: text("default_zoom").default("auto"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertPreferencesSchema = createInsertSchema(preferences).omit({ 
+  id: true, 
+  createdAt: true 
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Preference = typeof preferences.$inferSelect;
+export type InsertPreference = z.infer<typeof insertPreferencesSchema>;
+
+// No document content or metadata is stored in the DB to ensure strict privacy.
