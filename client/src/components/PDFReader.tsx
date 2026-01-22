@@ -95,41 +95,41 @@ export function PDFReader({ file, fileMeta, onClose }: PDFReaderProps) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="hidden md:flex flex-col">
-            <span className="text-sm font-semibold truncate max-w-[200px]">
+            <span className="text-sm font-semibold truncate max-w-[200px] text-foreground/80 dark:text-foreground/90">
               {fileMeta?.name || "Document"}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground/80 dark:text-muted-foreground/90">
               {numPages > 0 ? `${pageNumber} of ${numPages} pages` : "Loading..."}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 md:gap-2 bg-muted/50 p-1 rounded-lg">
-          <Button variant="ghost" size="icon" onClick={() => changePage(-1)} disabled={pageNumber <= 1}>
+        <div className="flex items-center gap-1 md:gap-2 bg-muted/50 dark:bg-muted/20 p-1 rounded-lg">
+          <Button variant="ghost" size="icon" onClick={() => changePage(-1)} disabled={pageNumber <= 1} className="text-foreground/70 hover:text-foreground">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
           <div className="flex items-center gap-1 px-2">
             <Input 
-              className="w-12 h-8 text-center px-1" 
+              className="w-12 h-8 text-center px-1 bg-background/50 border-muted-foreground/20 text-foreground/80" 
               value={pageNumber} 
               onChange={handlePageInput}
             />
-            <span className="text-sm text-muted-foreground hidden sm:inline">/ {numPages}</span>
+            <span className="text-sm text-muted-foreground/70 dark:text-muted-foreground/80 hidden sm:inline">/ {numPages}</span>
           </div>
 
-          <Button variant="ghost" size="icon" onClick={() => changePage(1)} disabled={pageNumber >= numPages}>
+          <Button variant="ghost" size="icon" onClick={() => changePage(1)} disabled={pageNumber >= numPages} className="text-foreground/70 hover:text-foreground">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="hidden md:flex items-center gap-1 mr-2">
-            <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}>
+            <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.max(0.5, s - 0.1))} className="text-foreground/70">
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <span className="text-xs font-mono w-12 text-center">{Math.round(scale * 100)}%</span>
-            <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.min(3.0, s + 0.1))}>
+            <span className="text-xs font-mono w-12 text-center text-foreground/70">{Math.round(scale * 100)}%</span>
+            <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.min(3.0, s + 0.1))} className="text-foreground/70">
               <ZoomIn className="h-4 w-4" />
             </Button>
           </div>
@@ -138,12 +138,12 @@ export function PDFReader({ file, fileMeta, onClose }: PDFReaderProps) {
             variant="ghost" 
             size="icon" 
             onClick={() => setIsNightMode(!isNightMode)}
-            className={cn("transition-colors", isNightMode ? "text-yellow-400" : "text-slate-600")}
+            className={cn("transition-colors", isNightMode ? "text-yellow-400 hover:text-yellow-300" : "text-slate-600 hover:text-slate-900")}
           >
             {isNightMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={onClose} className="ml-2 hover:bg-destructive/10 hover:text-destructive">
+          <Button variant="ghost" size="icon" onClick={onClose} className="ml-2 text-foreground/70 hover:bg-destructive/10 hover:text-destructive">
             <X className="h-5 w-5" />
           </Button>
         </div>
