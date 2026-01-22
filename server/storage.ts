@@ -1,5 +1,4 @@
-
-import { db } from "./db";
+import { db, getDb } from "./db";
 import {
   preferences,
   type InsertPreference,
@@ -13,27 +12,45 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // We'll treat ID 1 as the default/single user for this anonymous local-first app
   async getPreferences(id: number): Promise<Preference | undefined> {
-    const [pref] = await db.select().from(preferences).where(eq(preferences.id, id));
+    const database = await getDb();
+    if (!database) return undefined;
+    const [pref] = await database.select().from(preferences).where(eq(preferences.id, id));
     return pref;
   }
 
   async savePreferences(pref: InsertPreference): Promise<Preference> {
-    // Upsert logic for the single preference record
+    const database = await getDb();
+    if (!database) throw new Error("Database not connected");
+    
     const existing = await this.getPreferences(1);
     if (existing) {
-      const [updated] = await db.update(preferences)
+      const [updated] = await database.update(preferences)
         .set(pref)
         .where(eq(preferences.id, 1))
         .returning();
       return updated;
     } else {
-      const [created] = await db.insert(preferences)
-        .values({ ...pref, id: 1 }) // Force ID 1
+      const [created] = await database.insert(preferences)
+        .values({ ...pref, id: 1 })
         .returning();
       return created;
     }
+  }
+}
+
+export class MemStorage implements IStorage {
+  private prefs: Map<number, Preference> = new Map();
+
+  async getPreferences(id: number): Promise<Preference | undefined> {
+    return this.prefs.get(id);
+  }
+
+  async savePreferences(pref: InsertPreference): Promise<Preference> {
+    const id = 1;
+    const newPref: Preference = { ...pref, id, createdAt: new Date() };
+    this.prefs.set(id, newPref);
+    return newPref;
   }
 }
 
